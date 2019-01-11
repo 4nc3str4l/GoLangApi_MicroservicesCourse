@@ -115,35 +115,18 @@ func doBiDiStreaming(c calculatorpb.CalculatorServiceClient) {
 		return
 	}
 
-	requests := []*calculatorpb.FindMaximumRequest{
-		&calculatorpb.FindMaximumRequest{
-			Num: 1,
-		},
-		&calculatorpb.FindMaximumRequest{
-			Num: 5,
-		},
-		&calculatorpb.FindMaximumRequest{
-			Num: 3,
-		},
-		&calculatorpb.FindMaximumRequest{
-			Num: 6,
-		},
-		&calculatorpb.FindMaximumRequest{
-			Num: 2,
-		},
-		&calculatorpb.FindMaximumRequest{
-			Num: 20,
-		},
-	}
-
 	// Create a wait channel to block on it
 	waitc := make(chan struct{})
 
 	go func() {
+		numbers := []int64{1, 5, 3, 6, 2, 20}
+
 		// Send a bunch of messages to the client (go routine)
-		for _, req := range requests {
-			fmt.Printf("Sending message: %v\n", req)
-			stream.Send(req)
+		for _, num := range numbers {
+			fmt.Printf("Sending message: %v\n", num)
+			stream.Send(&calculatorpb.FindMaximumRequest{
+				Num: num,
+			})
 			time.Sleep(1000 * time.Millisecond)
 		}
 		stream.CloseSend()
