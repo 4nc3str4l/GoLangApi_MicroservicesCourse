@@ -22,7 +22,8 @@ func main() {
 	c := greetpb.NewGreetServiceClient(cc)
 	//doUnary(c)
 	//doServerStreaming(c)
-	doClientStreaming(c)
+	//doClientStreaming(c)
+	doBiDiStreaming(c)
 }
 
 func doUnary(c greetpb.GreetServiceClient) {
@@ -113,4 +114,77 @@ func doClientStreaming(c greetpb.GreetServiceClient) {
 		log.Fatalf("error while receiving response from LongGreet: %v", err)
 	}
 	fmt.Printf("LongGreet Response: %v\n", res)
+}
+
+func doBiDiStreaming(c greetpb.GreetServiceClient) {
+	fmt.Println("Starting to do a Bidi Streaming RPC...")
+
+	// Create a stream by invoking the client
+	stream, err := c.GreetEveryone(context.Background())
+	if err != nil {
+		log.Fatalf("Error while creating stream: %v", err)
+		return
+	}
+
+	requests := []*greetpb.GreetEveryoneRequest{
+		&greetpb.GreetEveryoneRequest{
+			Greeting: &greetpb.Greeting{
+				FirstName: "Cristian",
+			},
+		},
+		&greetpb.GreetEveryoneRequest{
+			Greeting: &greetpb.Greeting{
+				FirstName: "Myriam",
+			},
+		},
+		&greetpb.GreetEveryoneRequest{
+			Greeting: &greetpb.Greeting{
+				FirstName: "Guillem",
+			},
+		},
+		&greetpb.GreetEveryoneRequest{
+			Greeting: &greetpb.Greeting{
+				FirstName: "Pierre",
+			},
+		},
+		&greetpb.GreetEveryoneRequest{
+			Greeting: &greetpb.Greeting{
+				FirstName: "David",
+			},
+		},
+	}
+
+	// Create a wait channel to block on it
+	waitc := make(chan struct{})
+
+	go func() {
+		// Send a bunch of messages to the client (go routine)
+		for _, req := range requests {
+			fmt.Printf("Sending message: %v\n", req)
+			stream.Send(req)
+			time.Sleep(1000 * time.Millisecond)
+		}
+		stream.CloseSend()
+	}()
+
+	go func() {
+		// Receive a bunch of messages from the client (go routine)
+		for {
+			res, err := stream.Recv()
+			if err == io.EOF {
+				// Close the wait channel
+				close(waitc)
+				break
+			}
+			if err != nil {
+				log.Fatalf("Error while receiving: %v", err)
+				close(waitc)
+			}
+			fmt.Printf("Receved: %v\n", res.GetResult())
+		}
+
+	}()
+
+	// block until everything is done
+	<-waitc
 }
