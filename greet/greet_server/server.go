@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strconv"
+	"time"
 
 	"github.com/4nc3str4l/GoLangApi_MicroservicesCourse/greet/greetpb"
 	"google.golang.org/grpc"
@@ -23,16 +25,18 @@ func (*server) Greet(ctx context.Context, req *greetpb.GreetRequest) (*greetpb.G
 	return res, nil
 }
 
-// Sum implementation
-func (*server) Sum(ctx context.Context, req *greetpb.SumRequest) (*greetpb.SumResponse, error) {
-	fmt.Printf("Greet function was invoked with %v\n", req)
-	p1 := req.GetParameters().GetP1()
-	p2 := req.GetParameters().GetP2()
-	result := p1 + p2
-	res := &greetpb.SumResponse{
-		Result: result,
+func (*server) GreetManyTimes(req *greetpb.GreetManyTimesRequest, stream greetpb.GreetService_GreetManyTimesServer) error {
+	fmt.Printf("GreetManyTimes function was invoked with %v\n", req)
+	firstName := req.GetGreeting().GetFirstName()
+	for i := 0; i < 10; i++ {
+		result := "Hello  " + firstName + " number: " + strconv.Itoa(i)
+		res := &greetpb.GreetManytimesResponse{
+			Result: result,
+		}
+		stream.Send(res)
+		time.Sleep(1000 * time.Millisecond)
 	}
-	return res, nil
+	return nil
 }
 
 func main() {
@@ -44,9 +48,6 @@ func main() {
 
 	s := grpc.NewServer()
 	greetpb.RegisterGreetServiceServer(s, &server{})
-
-	// Register the calculator service
-	greetpb.RegisterCalculatorServiceServer(s, &server{})
 
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to server: %v", err)
