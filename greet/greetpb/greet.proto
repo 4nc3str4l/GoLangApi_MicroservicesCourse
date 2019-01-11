@@ -8,6 +8,7 @@ message Greeting{
     string last_name = 2;
 }
 
+// Unary Streaming Messages
 message GreetRequest {
     Greeting greeting = 1;
 }
@@ -16,6 +17,7 @@ message GreetResponse {
     string result = 1;
 }
 
+// Client Streaming Messages
 message GreetManyTimesRequest {
     Greeting greeting = 1;
 }
@@ -24,6 +26,8 @@ message GreetManytimesResponse {
     string result = 1;
 }
 
+
+// Server Streaming Messages
 message LongGreetRequest{
     Greeting greeting = 1;
 }
@@ -32,6 +36,7 @@ message LongGreetResponse{
     string result = 1;
 }
 
+// Bidirectional Streaming Messages
 message GreetEveryoneRequest{
     Greeting greeting = 1;
 }
@@ -39,6 +44,16 @@ message GreetEveryoneRequest{
 message GreetEveryoneResponse{
     string result = 1;
 }
+
+// Unary RPC with deadline messages
+message GreetWithDeadlineRequest{
+    Greeting greeting = 1;
+}
+
+message GreetWithDeadlineResponse{
+    string result = 1;
+}
+
 
 service GreetService{
     
@@ -53,6 +68,9 @@ service GreetService{
 
     // BiDirectional Streaming
     rpc GreetEveryone(stream GreetEveryoneRequest) returns (stream GreetEveryoneResponse) {};
+
+    // Unary with deadline
+    rpc GreetWithDeadline(GreetWithDeadlineRequest) returns (GreetWithDeadlineResponse) {};
 }
 
 
