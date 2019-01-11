@@ -23,7 +23,8 @@ func main() {
 	c := calculatorpb.NewCalculatorServiceClient(cc)
 	//doSum(c, 10, 3)
 	//doServerStreaming(c, 120)
-	doClientStreaming(c)
+	//doClientStreaming(c)
+	doBiDiStreaming(c)
 }
 
 func doSum(c calculatorpb.CalculatorServiceClient, p1 int32, p2 int32) {
@@ -102,4 +103,70 @@ func doClientStreaming(c calculatorpb.CalculatorServiceClient) {
 		log.Fatalf("error while receiving response from ComputeAverage: %v", err)
 	}
 	fmt.Printf("ComputeAverage Response: %v\n", res)
+}
+
+func doBiDiStreaming(c calculatorpb.CalculatorServiceClient) {
+	fmt.Println("Starting to do a Bidi Streaming RPC...")
+
+	// Create a stream by invoking the client
+	stream, err := c.FindMaximum(context.Background())
+	if err != nil {
+		log.Fatalf("Error while creating stream: %v", err)
+		return
+	}
+
+	requests := []*calculatorpb.FindMaximumRequest{
+		&calculatorpb.FindMaximumRequest{
+			Num: 1,
+		},
+		&calculatorpb.FindMaximumRequest{
+			Num: 5,
+		},
+		&calculatorpb.FindMaximumRequest{
+			Num: 3,
+		},
+		&calculatorpb.FindMaximumRequest{
+			Num: 6,
+		},
+		&calculatorpb.FindMaximumRequest{
+			Num: 2,
+		},
+		&calculatorpb.FindMaximumRequest{
+			Num: 20,
+		},
+	}
+
+	// Create a wait channel to block on it
+	waitc := make(chan struct{})
+
+	go func() {
+		// Send a bunch of messages to the client (go routine)
+		for _, req := range requests {
+			fmt.Printf("Sending message: %v\n", req)
+			stream.Send(req)
+			time.Sleep(1000 * time.Millisecond)
+		}
+		stream.CloseSend()
+	}()
+
+	go func() {
+		// Receive a bunch of messages from the client (go routine)
+		for {
+			res, err := stream.Recv()
+			if err == io.EOF {
+				// Close the wait channel
+				close(waitc)
+				break
+			}
+			if err != nil {
+				log.Fatalf("Error while receiving: %v", err)
+				close(waitc)
+			}
+			fmt.Printf("Receved: %v\n", res.GetResult())
+		}
+
+	}()
+
+	// block until everything is done
+	<-waitc
 }
