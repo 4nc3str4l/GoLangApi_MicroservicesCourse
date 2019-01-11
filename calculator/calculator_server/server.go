@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 
 	"github.com/4nc3str4l/GoLangApi_MicroservicesCourse/calculator/calculatorpb"
 	"google.golang.org/grpc"
@@ -22,6 +23,26 @@ func (*server) Sum(ctx context.Context, req *calculatorpb.SumRequest) (*calculat
 		Result: result,
 	}
 	return res, nil
+}
+
+func (*server) PrimeNumberDecomposition(req *calculatorpb.PrimeRequest, stream calculatorpb.CalculatorService_PrimeNumberDecompositionServer) error {
+	fmt.Printf("PrimeNumberDecomposition function was invoked with %v\n", req)
+	num := req.GetNum()
+	k := int32(2)
+	for num > 1 {
+		// Found a factor
+		if num%k == 0 {
+			res := &calculatorpb.PrimeResponse{
+				Result: k,
+			}
+			stream.Send(res)
+			num = num / k
+			time.Sleep(1000 * time.Millisecond)
+		} else {
+			k++
+		}
+	}
+	return nil
 }
 
 func main() {
