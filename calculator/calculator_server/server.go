@@ -12,6 +12,7 @@ import (
 	"github.com/4nc3str4l/GoLangApi_MicroservicesCourse/calculator/calculatorpb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 )
 
@@ -126,6 +127,9 @@ func main() {
 
 	// Register the calculator service
 	calculatorpb.RegisterCalculatorServiceServer(s, &server{})
+
+	// Register reflection on the gRPC Server
+	reflection.Register(s)
 
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to server: %v", err)
