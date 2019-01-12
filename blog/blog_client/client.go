@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 
 	"github.com/4nc3str4l/GoLangApi_MicroservicesCourse/blog/blogpb"
@@ -66,4 +67,21 @@ func main() {
 		fmt.Printf("Error happeed while deleteing: %v \n", deleteErr)
 	}
 	fmt.Printf("Blog was deleted: %v", deleteBlogRes)
+
+	// List blogs
+	resStream, err := c.ListBlog(context.Background(), &blogpb.ListBlogRequest{})
+	if err != nil {
+		log.Fatalf("Error while calling ListBlog RPC: %v", err)
+	}
+	for {
+		msg, err := resStream.Recv()
+		if err == io.EOF {
+			// End of stream reached
+			break
+		}
+		if err != nil {
+			log.Fatalf("error while reading stream %v", err)
+		}
+		log.Printf("Response from ListBlog %v", msg.GetBlog())
+	}
 }
