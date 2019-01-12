@@ -12,6 +12,8 @@ import (
 	"github.com/mongodb/mongo-go-driver/bson/primitive"
 	"github.com/mongodb/mongo-go-driver/mongo"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // Make the mongo collection global
@@ -24,6 +26,41 @@ type blogItem struct {
 	AuthorID string             `bson:"author_id`
 	Content  string             `bson:"content`
 	Title    string             `bson:"title`
+}
+
+func CreateBlog(ctx context.Context, req *blogpb.CreateBlogRequest) (*blogpb.CreateBlogResponse, error) {
+	blog := req.GetBlog()
+
+	data := blogItem{
+		AuthorID: blog.GetAuthorId(),
+		Title:    blog.GetTitle(),
+		Content:  blog.GetContent(),
+	}
+
+	res, err := collection.InsertOne(context.Background(), data)
+	if err != nil {
+		return nil, status.Errorf(
+			codes.Internal,
+			fmt.Sprintf("Internal error %v", err),
+		)
+	}
+	oid, ok := res.InsertedID.(primitive.ObjectID)
+	if !ok {
+		return nil, status.Errorf(
+			codes.Internal,
+			fmt.Sprintf("Cannot convert to OID", err),
+		)
+	}
+
+	return &blogpb.CreateBlogResponse{
+		Blog: &blogpb.Blog{
+			Id: oid.Hex(),
+			AuthorId: blog.GetAuthorId(),
+			Title: blog.GetTitle(),
+			Content: blog.GetContent()
+		},
+	}, nil
+
 }
 
 func main() {
