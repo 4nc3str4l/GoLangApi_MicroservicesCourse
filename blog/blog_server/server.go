@@ -28,7 +28,8 @@ type blogItem struct {
 	Title    string             `bson:"title`
 }
 
-func CreateBlog(ctx context.Context, req *blogpb.CreateBlogRequest) (*blogpb.CreateBlogResponse, error) {
+func (*server) CreateBlog(ctx context.Context, req *blogpb.CreateBlogRequest) (*blogpb.CreateBlogResponse, error) {
+	fmt.Println("Create blog request")
 	blog := req.GetBlog()
 
 	data := blogItem{
@@ -54,10 +55,10 @@ func CreateBlog(ctx context.Context, req *blogpb.CreateBlogRequest) (*blogpb.Cre
 
 	return &blogpb.CreateBlogResponse{
 		Blog: &blogpb.Blog{
-			Id: oid.Hex(),
+			Id:       oid.Hex(),
 			AuthorId: blog.GetAuthorId(),
-			Title: blog.GetTitle(),
-			Content: blog.GetContent()
+			Title:    blog.GetTitle(),
+			Content:  blog.GetContent(),
 		},
 	}, nil
 
