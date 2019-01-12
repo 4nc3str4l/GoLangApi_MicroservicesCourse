@@ -32,4 +32,18 @@ func main() {
 		log.Fatalf("Unexpected error: %v", err)
 	}
 	fmt.Println("Blog has been created: %v", createBlogRes)
+	blogID := createBlogRes.GetBlog().GetId()
+
+	// Read blog
+	_, err2 := c.ReadBlog(context.Background(), &blogpb.ReadBlogRequest{BlogId: "sadasd"})
+	if err2 != nil {
+		fmt.Printf("Error happened while reading: %v\n", err)
+	}
+
+	readblogReq := &blogpb.ReadBlogRequest{BlogId: blogID}
+	readBlogRes, readBlogErr := c.ReadBlog(context.Background(), readblogReq)
+	if readBlogErr != nil {
+		fmt.Printf("Error happened while reading; %v", readBlogErr)
+	}
+	fmt.Printf("Blog was read: %v", readBlogRes)
 }
