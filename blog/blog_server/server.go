@@ -9,6 +9,7 @@ import (
 	"os/signal"
 
 	"github.com/4nc3str4l/GoLangApi_MicroservicesCourse/blog/blogpb"
+	"github.com/mongodb/mongo-go-driver/bson/primitive"
 	"github.com/mongodb/mongo-go-driver/mongo"
 	"google.golang.org/grpc"
 )
@@ -19,9 +20,10 @@ var collection *mongo.Collection
 type server struct{}
 
 type blogItem struct {
-	AuthorID string `bson:"author_id`
-	Content  string `bson:"content`
-	Title    string `bson:"title`
+	ID       primitive.ObjectID `bson:"_id,omitempty"`
+	AuthorID string             `bson:"author_id`
+	Content  string             `bson:"content`
+	Title    string             `bson:"title`
 }
 
 func main() {
