@@ -166,6 +166,39 @@ func (*server) DeleteBlog(ctx context.Context, req *blogpb.DeleteBlogRequest) (*
 
 }
 
+func (*server) ListBlog(req *blogpb.ListBlogRequest, stream blogpb.BlogService_ListBlogServer) error {
+	fmt.Println("List Blog Request")
+	cur, err := collection.Find(context.Background(), nil)
+	if err != nil {
+		return status.Errorf(
+			codes.Internal,
+			fmt.Sprintf("Unknown Error: %v", err),
+		)
+	}
+	defer cur.Close(context.Background())
+	data := &blogItem{}
+	for cur.Next(context.Background()) {
+		if err := cur.Decode(data); err != nil {
+			return status.Errorf(
+				codes.NotFound,
+				fmt.Sprintf("Cannot decode blog: %v", err),
+			)
+		}
+		stream.Send(&blogpb.ListBlogResponse{
+			Blog: dataToBlogPb(data),
+		})
+	}
+	if err2 := cur.Err(); err2 != nil {
+		if err2 != nil {
+			return status.Errorf(
+				codes.Internal,
+				fmt.Sprintf("Unknown Error: %v", err2),
+			)
+		}
+	}
+	return nil
+}
+
 func dataToBlogPb(data *blogItem) *blogpb.Blog {
 	return &blogpb.Blog{
 		Id:       data.ID.Hex(),
