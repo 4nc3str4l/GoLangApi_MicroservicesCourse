@@ -37,7 +37,7 @@ func main() {
 	// Read blog
 	_, err2 := c.ReadBlog(context.Background(), &blogpb.ReadBlogRequest{BlogId: "sadasd"})
 	if err2 != nil {
-		fmt.Printf("Error happened while reading: %v\n", err)
+		fmt.Printf("Error happened while reading: %v\n", err2)
 	}
 
 	readblogReq := &blogpb.ReadBlogRequest{BlogId: blogID}
