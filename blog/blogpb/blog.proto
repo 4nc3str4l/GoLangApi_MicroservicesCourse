@@ -28,7 +28,7 @@ message ReadBlogResponse{
 }
 
 message UpdateBlogRequest{
-    string blog = 1;
+    Blog blog = 1;
 }
 
 message UpdateBlogResponse{
