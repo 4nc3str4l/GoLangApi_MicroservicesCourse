@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
@@ -8,17 +9,41 @@ import (
 	"os/signal"
 
 	"github.com/4nc3str4l/GoLangApi_MicroservicesCourse/blog/blogpb"
+	"github.com/mongodb/mongo-go-driver/mongo"
 	"google.golang.org/grpc"
 )
 
+// Make the mongo collection global
+var collection *mongo.Collection
+
 type server struct{}
+
+type blogItem struct {
+	AuthorID string `bson:"author_id`
+	Content  string `bson:"content`
+	Title    string `bson:"title`
+}
 
 func main() {
 	// if we crash the go code, we get the file name and line number
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	fmt.Println("Blog Service Started")
+	// Connect to mongo db
+	fmt.Println("Connecting to MongoDB")
+	client, err := mongo.NewClient("mongodb://localhost:27017")
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = client.Connect(context.TODO())
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	// Create a collection
+	collection = client.Database("mydb").Collection("blog")
+
+	// Start the server
+	fmt.Println("Blog Service Started")
 	lis, err := net.Listen("tcp", "0.0.0.0:50051")
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
@@ -47,5 +72,7 @@ func main() {
 	s.Stop()
 	fmt.Println("Cloing the listener")
 	lis.Close()
+	fmt.Println("Closing the MongoDB connection")
+	client.Disconnect(context.TODO())
 	fmt.Println("Shutdown Complete")
 }
